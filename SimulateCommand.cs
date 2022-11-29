@@ -17,17 +17,36 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
         [CommandOption("--shots")]
         [DefaultValue(10)]
         public int Shots { get; init; }
+
+        [Description("Suppress building the application. Defaults to false.")]
+        [CommandOption("--skip-build")]
+        [DefaultValue(true)]
+        public bool SkipBuild { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
         var dotnetCommand = "dotnet";
         Action<IDictionary<string, string>> environmentSetup = null;
+
+        // this is best effort workaround for ARM64...
         if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
         {
             dotnetCommand = "/usr/local/share/dotnet/x64/dotnet";
             var pathVariable = Environment.GetEnvironmentVariable("PATH");
             environmentSetup = env => env["PATH"] = $"{dotnetCommand}:{pathVariable}";
+        }
+
+        if (NeedsBuilding(settings))
+        {
+            var buildArgs = $"build {settings.Path} -c Release --debug";
+            await AnsiConsole.Status()
+                .StartAsync("[yellow]Building...[/]", async ctx => 
+                {
+                    var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(dotnetCommand, args: buildArgs, configureEnvironment: environmentSetup);
+                });
+
+            AnsiConsole.MarkupLine(":check_mark: [green]Built successfully![/]");
         }
 
         var discoveryType = TryGetBestExecutionPath(settings.Path, out var path);
@@ -45,7 +64,7 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
             })
             .StartAsync(async ctx =>
             {
-                var shotTask = ctx.AddTask("[green]Running shots[/]");
+                var shotTask = ctx.AddTask("[yellow]Running shots[/]");
                 for (var i = 0; i < settings.Shots; i++)
                 {
                     var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(dotnetCommand, args: dotnetCommandArgs, configureEnvironment: environmentSetup);
@@ -70,16 +89,18 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
                 shotTask.Value = 100;
             });
 
+        AnsiConsole.MarkupLine(":check_mark: [green]Finished running shots![/]");
+        AnsiConsole.WriteLine();
+
         var chart = new BarChart()
             .Width(60)
-            .Label("[green bold underline]Results[/]")
-            .CenterLabel();
+            .Label("[green]Results:[/]");
 
         for (var i = 0; i < results.Count; i++)
         {
             chart.AddItem(results.ElementAt(i).Key.EscapeMarkup(), results.ElementAt(i).Value, PreferredColors[i]);
         }
-
+        
         AnsiConsole.Write(chart);
 
         return 0;
@@ -88,6 +109,14 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
     private static readonly Color[] PreferredColors = new[] {
         Color.Yellow, Color.Green, Color.Aqua, Color.Blue
     };
+
+    private static bool NeedsBuilding(Settings settings)
+    {
+        if (!settings.SkipBuild) return false;
+        if (Path.HasExtension(settings.Path) && Path.GetExtension(settings.Path) == ".dll") return false;
+
+        return true;
+    }
 
     private static DiscoveryType TryGetBestExecutionPath(string path, out string discoveredPath)
     {

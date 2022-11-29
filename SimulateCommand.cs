@@ -20,7 +20,7 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
 
         [Description("Suppress building the application. Defaults to false.")]
         [CommandOption("--skip-build")]
-        [DefaultValue(true)]
+        [DefaultValue(false)]
         public bool SkipBuild { get; init; }
     }
 
@@ -39,7 +39,7 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
 
         if (NeedsBuilding(settings))
         {
-            var buildArgs = $"build {settings.Path} -c Release --debug";
+            var buildArgs = $"build {settings.Path} -c Release";
             await AnsiConsole.Status()
                 .StartAsync("[yellow]Building...[/]", async ctx => 
                 {
@@ -47,6 +47,10 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
                 });
 
             AnsiConsole.MarkupLine(":check_mark: [green]Built successfully![/]");
+        } 
+        else
+        {
+            AnsiConsole.MarkupLine(":check_mark: [green]Build skipped![/]");
         }
 
         var discoveryType = TryGetBestExecutionPath(settings.Path, out var path);
@@ -72,7 +76,7 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
                     shotTask.Increment(stepSize);
 
                     // only take the last line, because previous lines might contain any stdio output of the program itself
-                    var result = standardOutput.Trim().Split(Environment.NewLine).LastOrDefault();
+                    var result = SanitizeOutput(standardOutput);
                     if (result != null)
                     {
                         if (results.ContainsKey(result))
@@ -112,7 +116,7 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
 
     private static bool NeedsBuilding(Settings settings)
     {
-        if (!settings.SkipBuild) return false;
+        if (settings.SkipBuild) return false;
         if (Path.HasExtension(settings.Path) && Path.GetExtension(settings.Path) == ".dll") return false;
 
         return true;
@@ -158,5 +162,19 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
 
         discoveredPath = path;
         return DiscoveryType.Folder;
+    }
+
+    private static string SanitizeOutput(string standardOutput)
+    {
+        var rawResult = standardOutput.Trim().Split(Environment.NewLine).LastOrDefault();
+        return rawResult.
+            Replace("(", "|").
+            Replace("[", "|").
+            Replace(")", "⟩").
+            Replace("]", "⟩").
+            Replace(" ", string.Empty).
+            Replace(",", string.Empty).
+            Replace("Zero", "0").
+            Replace("One", "1");
     }
 }

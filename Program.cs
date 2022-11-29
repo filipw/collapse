@@ -22,7 +22,15 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        var dotnetCommand = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "/usr/local/share/dotnet/x64/dotnet" : "dotnet";
+        var dotnetCommand = "dotnet";
+        Action<IDictionary<string, string>> environmentSetup = null;
+        if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+        {
+            dotnetCommand = "/usr/local/share/dotnet/x64/dotnet";
+            var pathVariable = Environment.GetEnvironmentVariable("PATH");
+            environmentSetup = env => env["PATH"] = $"{dotnetCommand}:{pathVariable}";
+        }
+
         var discoveryType = TryGetBestExecutionPath(settings.Path, out var path);
         var dotnetCommandArgs = discoveryType == DiscoveryType.Dll ? path : $"run --project {path} -c Release";
         var stepSize = Math.Round(100.0 / settings.Shots, 2);
@@ -39,27 +47,24 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
             .StartAsync(async ctx =>
             {
                 var shotTask = ctx.AddTask("[green]Running shots[/]");
-                Action<IDictionary<string, string>> environmentSetup = null;
-                if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
-                {
-                    var pathVariable = Environment.GetEnvironmentVariable("PATH");
-                    environmentSetup = env => env["PATH"] = "/usr/local/share/dotnet/x64:" + pathVariable;
-                }
-
                 for (var i = 0; i < settings.Shots; i++)
                 {
                     var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(dotnetCommand, args: dotnetCommandArgs, configureEnvironment: environmentSetup);
                     
                     shotTask.Increment(stepSize);
 
-                    var result = standardOutput.Trim();
-                    if (results.ContainsKey(result))
+                    // only take the last line, because previous lines might contain any stdio output of the program itself
+                    var result = standardOutput.Trim().Split(Environment.NewLine).LastOrDefault();
+                    if (result != null)
                     {
-                        results[result] += 1;
-                    }
-                    else
-                    {
-                        results[result] = 1;
+                        if (results.ContainsKey(result))
+                        {
+                            results[result] += 1;
+                        }
+                        else
+                        {
+                            results[result] = 1;
+                        }
                     }
                 }
 

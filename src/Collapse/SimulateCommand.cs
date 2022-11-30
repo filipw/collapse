@@ -1,32 +1,14 @@
 using Spectre.Console;
 using System.Runtime.InteropServices;
 using Spectre.Console.Cli;
-using System.ComponentModel;
 
 namespace Collapse;
 
-internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
+internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
 {
-    public sealed class Settings : CommandSettings
-    {
-        [Description("Path to search for the Q# program. Defaults to current directory.")]
-        [CommandArgument(0, "[searchPath]")]
-        public string Path { get; init; }
-
-        [Description("Number of shots. Defaults to 10")]
-        [CommandOption("--shots")]
-        [DefaultValue(10)]
-        public int Shots { get; init; }
-
-        [Description("Suppress building the application. Defaults to false.")]
-        [CommandOption("--skip-build")]
-        [DefaultValue(false)]
-        public bool SkipBuild { get; init; }
-    }
-
     private static object _lock = new object();
 
-    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
+    public override async Task<int> ExecuteAsync(CommandContext context, SimulateCommandSettings settings)
     {
         var dotnetCommand = "dotnet";
         Action<IDictionary<string, string>> environmentSetup = null;
@@ -126,7 +108,7 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
         Color.Yellow, Color.Green, Color.Aqua, Color.Blue
     };
 
-    private static bool NeedsBuilding(Settings settings)
+    private static bool NeedsBuilding(SimulateCommandSettings settings)
     {
         if (settings.SkipBuild) return false;
         if (Path.HasExtension(settings.Path) && Path.GetExtension(settings.Path) == ".dll") return false;

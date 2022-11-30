@@ -102,29 +102,6 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
                     })));
                 }
 
-
-
-                // for (var i = 0; i < settings.Shots; i++)
-                // {
-                //     var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(dotnetCommand, args: dotnetCommandArgs, configureEnvironment: environmentSetup);
-
-                //     shotTask.Increment(stepSize);
-
-                //     // only take the last line, because previous lines might contain any stdio output of the program itself
-                //     var result = SanitizeOutput(standardOutput);
-                //     if (result != null)
-                //     {
-                //         if (results.ContainsKey(result))
-                //         {
-                //             results[result] += 1;
-                //         }
-                //         else
-                //         {
-                //             results[result] = 1;
-                //         }
-                //     }
-                // }
-
                 shotTask.Value = 100;
             });
 

@@ -55,7 +55,7 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
             {
                 var shotTask = ctx.AddTask("[yellow]Running shots[/]");
 
-                var chunks = Enumerable.Range(0, settings.Shots).Chunk(10);
+                var chunks = Enumerable.Range(0, settings.Shots).Chunk(5);
                 foreach (var chunk in chunks)
                 {
                     await Task.WhenAll(chunk.Select(i => Task.Run(async () =>
@@ -67,8 +67,6 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
 
                         lock (_lock)
                         {
-                            shotTask.Increment(stepSize);
-
                             if (result != null)
                             {
                                 if (results.ContainsKey(result))
@@ -82,6 +80,8 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
                             }
                         }
                     })));
+
+                    shotTask.Increment(stepSize * chunk.Length);
                 }
 
                 shotTask.Value = 100;

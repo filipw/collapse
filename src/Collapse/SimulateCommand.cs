@@ -46,6 +46,7 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
                     var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(dotnetCommand, args: buildArgs, configureEnvironment: environmentSetup);
                 });
 
+            AnsiConsole.WriteLine();
             AnsiConsole.MarkupLine(":check_mark: [green]Built successfully![/]");
         } 
         else

@@ -24,6 +24,8 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
         public bool SkipBuild { get; init; }
     }
 
+    private static object _lock = new object();
+
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
         var dotnetCommand = "dotnet";
@@ -41,14 +43,14 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
         {
             var buildArgs = $"build {settings.Path} -c Release";
             await AnsiConsole.Status()
-                .StartAsync("[yellow]Building...[/]", async ctx => 
+                .StartAsync("[yellow]Building...[/]", async ctx =>
                 {
                     var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(dotnetCommand, args: buildArgs, configureEnvironment: environmentSetup);
                 });
 
             AnsiConsole.WriteLine();
             AnsiConsole.MarkupLine(":check_mark: [green]Built successfully![/]");
-        } 
+        }
         else
         {
             AnsiConsole.MarkupLine(":check_mark: [green]Build skipped![/]");
@@ -70,26 +72,58 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
             .StartAsync(async ctx =>
             {
                 var shotTask = ctx.AddTask("[yellow]Running shots[/]");
-                for (var i = 0; i < settings.Shots; i++)
+
+                var chunks = Enumerable.Range(0, settings.Shots).Chunk(10);
+                foreach (var chunk in chunks)
                 {
-                    var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(dotnetCommand, args: dotnetCommandArgs, configureEnvironment: environmentSetup);
-
-                    shotTask.Increment(stepSize);
-
-                    // only take the last line, because previous lines might contain any stdio output of the program itself
-                    var result = SanitizeOutput(standardOutput);
-                    if (result != null)
+                    await Task.WhenAll(chunk.Select(i => Task.Run(async () =>
                     {
-                        if (results.ContainsKey(result))
+                        var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(dotnetCommand, args: dotnetCommandArgs, configureEnvironment: environmentSetup);
+
+                        // only take the last line, because previous lines might contain any stdio output of the program itself
+                        var result = SanitizeOutput(standardOutput);
+
+                        lock (_lock)
                         {
-                            results[result] += 1;
+                            shotTask.Increment(stepSize);
+
+                            if (result != null)
+                            {
+                                if (results.ContainsKey(result))
+                                {
+                                    results[result] += 1;
+                                }
+                                else
+                                {
+                                    results[result] = 1;
+                                }
+                            }
                         }
-                        else
-                        {
-                            results[result] = 1;
-                        }
-                    }
+                    })));
                 }
+
+
+
+                // for (var i = 0; i < settings.Shots; i++)
+                // {
+                //     var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(dotnetCommand, args: dotnetCommandArgs, configureEnvironment: environmentSetup);
+
+                //     shotTask.Increment(stepSize);
+
+                //     // only take the last line, because previous lines might contain any stdio output of the program itself
+                //     var result = SanitizeOutput(standardOutput);
+                //     if (result != null)
+                //     {
+                //         if (results.ContainsKey(result))
+                //         {
+                //             results[result] += 1;
+                //         }
+                //         else
+                //         {
+                //             results[result] = 1;
+                //         }
+                //     }
+                // }
 
                 shotTask.Value = 100;
             });
@@ -105,7 +139,7 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
         {
             chart.AddItem(results.ElementAt(i).Key.EscapeMarkup(), results.ElementAt(i).Value, PreferredColors[i]);
         }
-        
+
         AnsiConsole.Write(chart);
 
         return 0;
@@ -177,5 +211,19 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommand.Settings>
             Replace(",", string.Empty).
             Replace("Zero", "0").
             Replace("One", "1");
+    }
+}
+
+internal static class EnumerableExtensions
+{
+    public static IEnumerable<IEnumerable<T>> Batch<T>(this IEnumerable<T> enumerable, int batchSize)
+    {
+        var length = enumerable.Count();
+        var index = 0;
+        do
+        {
+            yield return enumerable.Skip(index).Take(batchSize);
+            index += batchSize;
+        } while (index < length);
     }
 }

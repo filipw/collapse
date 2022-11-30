@@ -6,7 +6,7 @@ namespace Collapse;
 
 internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
 {
-    private static object _lock = new object();
+    private static readonly object _lock = new();
 
     public override async Task<int> ExecuteAsync(CommandContext context, SimulateCommandSettings settings)
     {
@@ -21,6 +21,7 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
             environmentSetup = env => env["PATH"] = $"{dotnetCommand}:{pathVariable}";
         }
 
+        // build
         if (NeedsBuilding(settings))
         {
             var buildArgs = $"build {settings.Path} -c Release";
@@ -38,6 +39,7 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
             AnsiConsole.MarkupLine(":check_mark: [green]Build skipped![/]");
         }
 
+        // run
         var discoveryType = TryGetBestExecutionPath(settings.Path, out var path);
         var dotnetCommandArgs = discoveryType == DiscoveryType.Dll ? path : $"run --project {path} -c Release";
         var stepSize = Math.Round(100.0 / settings.Shots, 2);
@@ -170,19 +172,5 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
             Replace(",", string.Empty).
             Replace("Zero", "0").
             Replace("One", "1");
-    }
-}
-
-internal static class EnumerableExtensions
-{
-    public static IEnumerable<IEnumerable<T>> Batch<T>(this IEnumerable<T> enumerable, int batchSize)
-    {
-        var length = enumerable.Count();
-        var index = 0;
-        do
-        {
-            yield return enumerable.Skip(index).Take(batchSize);
-            index += batchSize;
-        } while (index < length);
     }
 }

@@ -21,6 +21,8 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
             environmentSetup = env => env["PATH"] = $"{dotnetCommand}:{pathVariable}";
         }
 
+        AnsiConsole.WriteLine();
+
         // build
         if (NeedsBuilding(settings))
         {
@@ -31,7 +33,6 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
                     var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(dotnetCommand, args: buildArgs, configureEnvironment: environmentSetup);
                 });
 
-            AnsiConsole.WriteLine();
             AnsiConsole.MarkupLine(":check_mark: [green]Built successfully![/]");
         }
         else

@@ -17,7 +17,11 @@ public sealed class SimulateCommandSettings : CommandSettings
         [Description("Use QIR. Defaults to false")]
         [CommandOption("--qir")]
         [DefaultValue(false)]
-        public bool Qir { get; set; }
+        public bool Qir { get; init; }
+
+        [Description("QIR simulator path. Defaults to empty (taken from PATH).")]
+        [CommandOption("--qir-runner")]
+        public string QirRunner { get; init; }
 
         [Description("Suppress building the application. Defaults to false.")]
         [CommandOption("--skip-build")]

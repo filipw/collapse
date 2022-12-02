@@ -14,6 +14,11 @@ public sealed class SimulateCommandSettings : CommandSettings
         [DefaultValue(10)]
         public int Shots { get; init; }
 
+        [Description("Use QIR. Defaults to false")]
+        [CommandOption("--qir")]
+        [DefaultValue(false)]
+        public bool Qir { get; set; }
+
         [Description("Suppress building the application. Defaults to false.")]
         [CommandOption("--skip-build")]
         [DefaultValue(false)]

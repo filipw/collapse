@@ -1,3 +1,3 @@
 namespace Collapse;
 
-enum DiscoveryType { CurrentDirectory, Dll, Folder }
+enum DiscoveryType { NotFound, CurrentDirectory, Executable, Folder }

@@ -11,7 +11,7 @@
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/src/Collapse/bin/Debug/net6.0/collapse.dll",
-            "args": ["/Users/filipw/dev/qsharp-test/1", "--shots", "30"],
+            "args": ["../../test-assets/H", "--shots", "30"],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",

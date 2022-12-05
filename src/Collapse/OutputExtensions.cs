@@ -6,6 +6,8 @@ public static class OutputExtensions
     {
         // only take the last line, because previous lines might contain any stdio output of the program itself
         var rawResult = standardOutput.Trim().Split(Environment.NewLine).LastOrDefault();
+        if (rawResult == "Zero") return "|0⟩";
+        if (rawResult == "One") return "|1⟩";
         return rawResult.
             Replace("(", "|").
             Replace("[", "|").

@@ -27,16 +27,23 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
         ISimulationStrategy simulation = settings.Qir ? new QirSimulationStrategy() : new DotnetSimulationStrategy();
 
         // 2. build
-        if (NeedsBuilding(settings))
+        if (!settings.SkipBuild)
         {
-            var buildArgs = $"build {settings.Path} -c Release";
-            await AnsiConsole.Status()
-                .StartAsync("[yellow]Building...[/]", async ctx =>
-                {
-                    var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(dotnetCommand, args: buildArgs, configureEnvironment: environmentSetup);
-                });
+            var buildCommandLineInfo = simulation.GetBuildCommandLineInfo(settings.Path);
+            if (buildCommandLineInfo != CommandLineInfo.None)
+            {
+                await AnsiConsole.Status()
+                    .StartAsync("[yellow]Building...[/]", async ctx =>
+                    {
+                        var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(buildCommandLineInfo.Name, args: buildCommandLineInfo.Args, configureEnvironment: environmentSetup);
+                    });
 
-            AnsiConsole.MarkupLine(":check_mark: [green]Built successfully![/]");
+                AnsiConsole.MarkupLine(":check_mark: [green]Built successfully![/]");
+            } 
+            else 
+            {
+                AnsiConsole.MarkupLine(":check_mark: [green]Already pre-built![/]");
+            }
         }
         else
         {
@@ -44,7 +51,6 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
         }
 
         // 3. simulate
-
         var stepSize = Math.Round(100.0 / settings.Shots, 2);
         var results = new Dictionary<string, int>();
 

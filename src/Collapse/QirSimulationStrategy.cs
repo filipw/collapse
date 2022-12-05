@@ -2,6 +2,17 @@ namespace Collapse;
 
 public class QirSimulationStrategy : ISimulationStrategy
 {
+    public CommandLineInfo GetBuildCommandLineInfo(string path)
+    {
+        if (!NeedsBuilding(path)) return CommandLineInfo.None;
+
+        return new CommandLineInfo
+        {
+            Name = "dotnet",
+            Args = $"build {path} /p:QirGeneration=true /p:CSharpGeneration=false"
+        };
+    }
+
     public CommandLineInfo GetSimulateCommandLineInfo(SimulateCommandSettings settings)
     {
         var discoveryType = TryGetBestExecutionPath(settings.Path, out var path);
@@ -16,6 +27,13 @@ public class QirSimulationStrategy : ISimulationStrategy
             Args = path
         };
     }
+
+    private static bool NeedsBuilding(string path)
+    {
+        if (Path.HasExtension(path) && Path.GetExtension(path) == ".ll") return false;
+        return true;
+    }
+
     private static DiscoveryType TryGetBestExecutionPath(string path, out string discoveredPath)
     {
         discoveredPath = null;

@@ -2,6 +2,17 @@ namespace Collapse;
 
 public class DotnetSimulationStrategy : ISimulationStrategy
 {
+    public CommandLineInfo GetBuildCommandLineInfo(string path)
+    {
+        if (!NeedsBuilding(path)) return CommandLineInfo.None;
+
+        return new CommandLineInfo
+        {
+            Name = "dotnet",
+            Args = $"build {path} -c Release /p:QirGeneration=false /p:CSharpGeneration=true"
+        };
+    }
+
     public CommandLineInfo GetSimulateCommandLineInfo(SimulateCommandSettings settings)
     {
         var discoveryType = TryGetBestExecutionPath(settings.Path, out var path);
@@ -54,5 +65,11 @@ public class DotnetSimulationStrategy : ISimulationStrategy
 
         discoveredPath = path;
         return DiscoveryType.Folder;
+    }
+
+    private static bool NeedsBuilding(string path)
+    {
+        if (Path.HasExtension(path) && Path.GetExtension(path) == ".dll") return false;
+        return true;
     }
 }

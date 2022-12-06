@@ -13,10 +13,10 @@ public class DotnetSimulationStrategy : ISimulationStrategy
         };
     }
 
-    public CommandLineInfo GetSimulateCommandLineInfo(SimulateCommandSettings settings)
+    public CommandLineInfo GetExecuteCommandLineInfo(string path)
     {
-        var discoveryType = TryGetBestExecutionPath(settings.Path, out var path);
-        var dotnetCommandArgs = discoveryType == DiscoveryType.Executable ? path : $"run --project {path} -c Release";
+        var discoveryType = TryGetBestExecutionPath(path, out var discoveredPath);
+        var dotnetCommandArgs = discoveryType == DiscoveryType.Executable ? path : $"run --project {discoveredPath} -c Release";
 
         return new CommandLineInfo
         {

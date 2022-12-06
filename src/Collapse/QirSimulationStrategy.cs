@@ -2,6 +2,13 @@ namespace Collapse;
 
 public class QirSimulationStrategy : ISimulationStrategy
 {
+    private readonly SimulateCommandSettings settings;
+
+    public QirSimulationStrategy(SimulateCommandSettings settings)
+    {
+        this.settings = settings;
+    }
+
     public CommandLineInfo GetBuildCommandLineInfo(string path)
     {
         if (!NeedsBuilding(path)) return CommandLineInfo.None;
@@ -13,9 +20,9 @@ public class QirSimulationStrategy : ISimulationStrategy
         };
     }
 
-    public CommandLineInfo GetSimulateCommandLineInfo(SimulateCommandSettings settings)
+    public CommandLineInfo GetExecuteCommandLineInfo(string path)
     {
-        var discoveryType = TryGetBestExecutionPath(settings.Path, out var path);
+        var discoveryType = TryGetBestExecutionPath(path, out var discoveredPath);
         if (discoveryType == DiscoveryType.NotFound)
         {
             throw new Exception("No valid QIR executable found!");
@@ -24,7 +31,7 @@ public class QirSimulationStrategy : ISimulationStrategy
         return new CommandLineInfo
         {
             Name = !string.IsNullOrWhiteSpace(settings.QirRunner) ? settings.QirRunner : "qir-runner",
-            Args = path
+            Args = discoveredPath
         };
     }
 

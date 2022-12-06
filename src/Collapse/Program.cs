@@ -2,9 +2,9 @@
 using Spectre.Console.Cli;
 
 var app = new CommandApp();
-app.SetDefaultCommand<SimulateCommand>();
 app.Configure(c =>
 {
     c.AddCommand<SimulateCommand>("sim");
+    c.AddCommand<AzureCommand>("azure");
 });
 return await app.RunAsync(args);

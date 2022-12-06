@@ -6,7 +6,7 @@ namespace Collapse;
 public sealed class SimulateCommandSettings : CommandSettings
     {
         [Description("Path to search for the Q# program. Defaults to current directory.")]
-        [CommandArgument(0, "[searchPath]")]
+        [CommandArgument(0, "<searchPath>")]
         public string Path { get; init; }
 
         [Description("Number of shots. Defaults to 10")]

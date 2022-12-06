@@ -10,21 +10,10 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, SimulateCommandSettings settings)
     {
-        var dotnetCommand = "dotnet";
-        Action<IDictionary<string, string>> environmentSetup = null;
-
-        // this is best effort workaround for ARM64...
-        if (RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
-        {
-            dotnetCommand = "/usr/local/share/dotnet/x64/dotnet";
-            var pathVariable = Environment.GetEnvironmentVariable("PATH");
-            environmentSetup = env => env["PATH"] = $"{dotnetCommand}:{pathVariable}";
-        }
-
         AnsiConsole.WriteLine();
 
         // 1. choose strategy
-        ISimulationStrategy simulation = settings.Qir ? new QirSimulationStrategy() : new DotnetSimulationStrategy();
+        ISimulationStrategy simulation = settings.Qir ? new QirSimulationStrategy(settings) : new DotnetSimulationStrategy();
 
         // 2. build
         if (!settings.SkipBuild)
@@ -35,7 +24,7 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
                 await AnsiConsole.Status()
                     .StartAsync("[yellow]Building...[/]", async ctx =>
                     {
-                        var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(buildCommandLineInfo.Name, args: buildCommandLineInfo.Args, configureEnvironment: environmentSetup);
+                        var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(buildCommandLineInfo.Name, args: buildCommandLineInfo.Args);
                     });
 
                 AnsiConsole.MarkupLine(":check_mark: [green]Built successfully![/]");
@@ -54,7 +43,7 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
         var stepSize = Math.Round(100.0 / settings.Shots, 2);
         var results = new Dictionary<string, int>();
 
-        var simulateCommandLineInfo = simulation.GetSimulateCommandLineInfo(settings);
+        var simulateCommandLineInfo = simulation.GetExecuteCommandLineInfo(settings.Path);
 
         await AnsiConsole.Progress()
             .Columns(new ProgressColumn[]
@@ -108,7 +97,7 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
 
         for (var i = 0; i < results.Count; i++)
         {
-            var color = PreferredColors.Length > i ? PreferredColors[i] : Color.White;
+            var color = PreferredColors.Entries.Length > i ? PreferredColors.Entries[i] : Color.White;
             chart.AddItem(results.ElementAt(i).Key.EscapeMarkup(), results.ElementAt(i).Value, color);
         }
 
@@ -116,11 +105,4 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
 
         return 0;
     }
-
-    private static readonly Color[] PreferredColors = new[] {
-        Color.Yellow, Color.Green,
-        Color.Aqua, Color.Blue, 
-        Color.Fuchsia, Color.Lime, 
-        Color.Purple, Color.Teal,
-    };
 }

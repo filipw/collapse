@@ -108,7 +108,8 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
 
         for (var i = 0; i < results.Count; i++)
         {
-            chart.AddItem(results.ElementAt(i).Key.EscapeMarkup(), results.ElementAt(i).Value, PreferredColors[i]);
+            var color = PreferredColors.Length > i ? PreferredColors[i] : Color.White;
+            chart.AddItem(results.ElementAt(i).Key.EscapeMarkup(), results.ElementAt(i).Value, color);
         }
 
         AnsiConsole.Write(chart);
@@ -117,14 +118,9 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
     }
 
     private static readonly Color[] PreferredColors = new[] {
-        Color.Yellow, Color.Green, Color.Aqua, Color.Blue
+        Color.Yellow, Color.Green,
+        Color.Aqua, Color.Blue, 
+        Color.Fuchsia, Color.Lime, 
+        Color.Purple, Color.Teal,
     };
-
-    private static bool NeedsBuilding(SimulateCommandSettings settings)
-    {
-        if (settings.SkipBuild) return false;
-        if (Path.HasExtension(settings.Path) && Path.GetExtension(settings.Path) == ".dll") return false;
-
-        return true;
-    }
 }

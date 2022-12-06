@@ -99,8 +99,6 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
                 shotTask.Value = 100;
             });
 
-        //var results = await simulation.Simulate(settings);
-
         AnsiConsole.MarkupLine(":check_mark: [green]Finished running shots![/]");
         AnsiConsole.WriteLine();
 

@@ -13,10 +13,16 @@ public class AzureSyncExecutionStrategy : IExecutionStrategy
     {
         if (string.IsNullOrWhiteSpace(settings.TargetId)) throw new Exception("Target is mandatory!");
 
+        var command = $"quantum execute --project {settings.Path} --target-id {settings.TargetId} --shots {settings.Shots} --output json";
+
+        if (settings.SkipBuild)
+        {
+            command = $"{command} --no-build";
+        }
         return new CommandLineInfo
         {
             Name = "az",
-            Args = $"quantum execute --project {settings.Path} --target-id {settings.TargetId} --shots {settings.Shots} --output json"
+            Args = command
         };
     }
 }

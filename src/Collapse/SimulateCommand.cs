@@ -22,7 +22,7 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
             if (buildCommandLineInfo != CommandLineInfo.None)
             {
                 await AnsiConsole.Status()
-                    .StartAsync("[yellow]Building...[/]", async ctx =>
+                    .StartAsync($"[yellow]{buildCommandLineInfo.Title}...[/]", async ctx =>
                     {
                         var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(buildCommandLineInfo.Name, args: buildCommandLineInfo.Args);
                     });

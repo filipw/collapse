@@ -21,4 +21,9 @@ public sealed class AzureCommandSettings : CommandSettings
     [CommandOption("--shots")]
     [DefaultValue(10)]
     public int Shots { get; init; }
+
+    [Description("Suppress building the application. Defaults to false.")]
+    [CommandOption("--skip-build")]
+    [DefaultValue(false)]
+    public bool SkipBuild { get; init; }
 }

@@ -12,8 +12,9 @@
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/src/Collapse/bin/Debug/net6.0/collapse.dll",
             //"args": ["../../test-assets/H", "--shots", "30"],
-            "args": ["azure", "../../test-assets/RNG", "ionq.simulator"],
-            "cwd": "${workspaceFolder}",
+            //"args": ["azure", "../../test-assets/RNG", "ionq.simulator"],
+            "args": ["sim", "../../test-assets/BellState", "--shots", "30", "--skip-build"],
+            "cwd": "${workspaceFolder}/src/Collapse",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",
             "stopAtEntry": false

@@ -8,6 +8,7 @@ public class DotnetSimulationStrategy : ISimulationStrategy
 
         return new CommandLineInfo
         {
+            Title = "Building C#",
             Name = "dotnet",
             Args = $"build {path} -c Release /p:QirGeneration=false /p:CSharpGeneration=true"
         };
@@ -16,7 +17,7 @@ public class DotnetSimulationStrategy : ISimulationStrategy
     public CommandLineInfo GetExecuteCommandLineInfo(string path)
     {
         var discoveryType = TryGetBestExecutionPath(path, out var discoveredPath);
-        var dotnetCommandArgs = discoveryType == DiscoveryType.Executable ? path : $"run --project {discoveredPath} -c Release";
+        var dotnetCommandArgs = discoveryType == DiscoveryType.Executable ? discoveredPath : $"run --project {discoveredPath} -c Release";
 
         return new CommandLineInfo
         {

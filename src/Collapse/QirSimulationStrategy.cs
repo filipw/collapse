@@ -15,6 +15,7 @@ public class QirSimulationStrategy : ISimulationStrategy
 
         return new CommandLineInfo
         {
+            Title = "Building QIR",
             Name = "dotnet",
             Args = $"build {path} /p:QirGeneration=true /p:CSharpGeneration=false"
         };

@@ -19,6 +19,7 @@ public class AzureSyncExecutionStrategy : IExecutionStrategy
         {
             command = $"{command} --no-build";
         }
+        
         return new CommandLineInfo
         {
             Name = "az",

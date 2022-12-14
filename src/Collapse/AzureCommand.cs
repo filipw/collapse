@@ -28,8 +28,7 @@ internal sealed class AzureCommand : AsyncCommand<AzureCommandSettings>
         await Task.Delay(500);
 
         // 3. parse
-        var parser = new AzureResultParser();
-        var results = parser.ParseResults(result);
+        var results = OutputParser.ParseResults(result);
         var chart = new BarChart()
             .Width(60)
             .Label("[green]Results:[/]");

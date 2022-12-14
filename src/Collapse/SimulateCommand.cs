@@ -39,7 +39,7 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
             AnsiConsole.MarkupLine(":check_mark: [green]Build skipped![/]");
         }
 
-        // 3. simulate
+        // 3. simulate and parse
         var stepSize = Math.Round(100.0 / settings.Shots, 2);
         var results = new Dictionary<string, int>();
 
@@ -64,7 +64,7 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
                     {
                         var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(simulateCommandLineInfo.Name, args: simulateCommandLineInfo.Args);
 
-                        var result = standardOutput.SanitizeOutput();
+                        var result = OutputParser.SanitizeOutput(standardOutput);
 
                         lock (_lock)
                         {

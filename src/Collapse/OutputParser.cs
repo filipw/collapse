@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace Collapse;
 
-public class OutputParser
+public static class OutputParser
 {
     public static Dictionary<string, double> ParseResults(string standardOutput)
     {

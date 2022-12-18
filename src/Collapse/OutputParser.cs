@@ -4,28 +4,43 @@ namespace Collapse;
 
 public static class OutputParser
 {
-    public static Dictionary<string, double> ParseResults(string standardOutput)
+    private static IReadOnlyDictionary<string, double> Empty = new Dictionary<string, double>();
+
+    public static IReadOnlyDictionary<string, double> ParseResults(string standardOutput)
     {
         var from = standardOutput.IndexOf("{");
+        if (from == -1) return Empty;
+
         var to = standardOutput.LastIndexOf("}") + 1;
+        if (to == -1) return Empty;
+        
         var json = standardOutput[from..to];
-
-        var deserialized = JsonSerializer.Deserialize<AzureExecutionResponse>(json);
-
-        var results = new Dictionary<string, double>();
-        for (var i = 0; i < deserialized.Histogram.Length; i+=2)
+        try
         {
-            if (deserialized.Histogram[i].ValueKind == JsonValueKind.String && deserialized.Histogram[i + 1].ValueKind == JsonValueKind.Number)
-            {
-                var label = deserialized.Histogram[i].GetString();
-                var data = deserialized.Histogram[i + 1].GetDouble();
-                results[SanitizeOutput(label)] = data;
-            } else {
-                // todo: log this
-            }
-        }
+            var deserialized = JsonSerializer.Deserialize<AzureExecutionResponse>(json);
 
-        return results;
+            var results = new Dictionary<string, double>();
+            for (var i = 0; i < deserialized.Histogram.Length; i += 2)
+            {
+                if (deserialized.Histogram[i].ValueKind == JsonValueKind.String && deserialized.Histogram[i + 1].ValueKind == JsonValueKind.Number)
+                {
+                    var label = deserialized.Histogram[i].GetString();
+                    var data = deserialized.Histogram[i + 1].GetDouble();
+                    results[SanitizeOutput(label)] = data;
+                }
+                else
+                {
+                    // todo: log this
+                }
+            }
+
+            return results;
+        } 
+        catch (Exception)
+        {
+            // todo: log this
+            return Empty;
+        }
     }
 
     public static string SanitizeOutput(string standardOutput)

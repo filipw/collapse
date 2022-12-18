@@ -40,4 +40,14 @@ public class OutputParserTests
         Assert.Equal("|0111⟩", result.Keys.ElementAt(14));
         Assert.Equal("|1111⟩", result.Keys.ElementAt(15));
     }
+
+    [Theory]
+    [InlineData("// 453 foo")]
+    [InlineData("{ // 453 foo }")]
+    [InlineData("{ \"brr\" }")]
+    public void BadSimulatorOutput(string data)
+    {
+        var result = OutputParser.ParseResults(data);
+        Assert.Empty(result);
+    }
 }

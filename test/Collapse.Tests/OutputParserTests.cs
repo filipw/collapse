@@ -9,6 +9,8 @@ public class OutputParserTests
     [InlineData("One", "|1⟩")]
     [InlineData("(Zero, One)", "|01⟩")]
     [InlineData("[Zero, One]", "|01⟩")]
+    [InlineData("(Zero, One, One)", "|011⟩")]
+    [InlineData("[Zero, One, One]", "|011⟩")]
     public void BasicQSharpOutput(string input, string expectedOutput)
     {
         var result = OutputParser.SanitizeOutput(input);

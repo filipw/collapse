@@ -8,9 +8,9 @@ public class DotnetSimulationStrategyTests
     public void ExecuteCommandReturnsExpectedArgumentsForAFolder()
     {
         var strategy = new DotnetSimulationStrategy();
-        var result = strategy.GetExecuteCommandLineInfo("/");
+        var result = strategy.GetExecuteCommandLineInfo(".");
 
-        Assert.Equal("run --project / -c Release", result.Args);
+        Assert.Equal("run --project . -c Release", result.Args);
         Assert.Equal("dotnet", result.Name);
     }
 }

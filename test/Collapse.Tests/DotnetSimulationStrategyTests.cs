@@ -13,4 +13,15 @@ public class DotnetSimulationStrategyTests
         Assert.Equal("run --project . -c Release", result.Args);
         Assert.Equal("dotnet", result.Name);
     }
+
+    [Fact]
+    public void BuildCommandReturnsExpectedArguments()
+    {
+        var strategy = new DotnetSimulationStrategy();
+        var result = strategy.GetBuildCommandLineInfo(".");
+
+        Assert.Equal("build . -c Release /p:QirGeneration=false /p:CSharpGeneration=true", result.Args);
+        Assert.Equal("dotnet", result.Name);
+        Assert.Equal("Building C#", result.Title);
+    }
 }

@@ -24,4 +24,13 @@ public class DotnetSimulationStrategyTests
         Assert.Equal("dotnet", result.Name);
         Assert.Equal("Building C#", result.Title);
     }
+
+    [Fact]
+    public void BuildCommandSkipsBuildForDllPaths()
+    {
+        var strategy = new DotnetSimulationStrategy();
+        var result = strategy.GetBuildCommandLineInfo("foo.dll");
+
+        Assert.Equal(CommandLineInfo.None, result);
+    }
 }

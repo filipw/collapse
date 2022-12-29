@@ -15,6 +15,16 @@ public class DotnetSimulationStrategyTests
     }
 
     [Fact]
+    public void ExecuteCommandReturnsExpectedArgumentsForADll()
+    {
+        var strategy = new DotnetSimulationStrategy();
+        var result = strategy.GetExecuteCommandLineInfo("./foo.dll");
+
+        Assert.Equal("./foo.dll", result.Args);
+        Assert.Equal("dotnet", result.Name);
+    }
+
+    [Fact]
     public void BuildCommandReturnsExpectedArguments()
     {
         var strategy = new DotnetSimulationStrategy();

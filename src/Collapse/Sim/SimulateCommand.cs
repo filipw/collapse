@@ -13,7 +13,7 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
         AnsiConsole.WriteLine();
 
         // 1. choose strategy
-        ISimulationStrategy simulation = settings.Qir ? new QirSimulationStrategy(settings) : new DotnetSimulationStrategy();
+        ISimulationStrategy simulation = settings.Qir ? new QirSimulationStrategy(settings) : new DotnetSimulationStrategy(settings);
 
         // 2. build
         if (!settings.SkipBuild)

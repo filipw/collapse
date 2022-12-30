@@ -2,6 +2,13 @@ namespace Collapse;
 
 public class DotnetSimulationStrategy : ISimulationStrategy
 {
+    private readonly SimulateCommandSettings settings;
+
+    public DotnetSimulationStrategy(SimulateCommandSettings settings)
+    {
+        this.settings = settings;
+    }
+
     public CommandLineInfo GetBuildCommandLineInfo(string path)
     {
         if (!NeedsBuilding(path)) return CommandLineInfo.None;
@@ -68,8 +75,13 @@ public class DotnetSimulationStrategy : ISimulationStrategy
         return DiscoveryType.Folder;
     }
 
-    private static bool NeedsBuilding(string path)
+    private bool NeedsBuilding(string path)
     {
+        if (settings.SkipBuild)
+        {
+            return false;
+        }
+
         if (Path.HasExtension(path) && Path.GetExtension(path) == ".dll") return false;
         return true;
     }

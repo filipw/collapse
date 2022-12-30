@@ -7,7 +7,8 @@ public class DotnetSimulationStrategyTests
     [Fact]
     public void ExecuteCommandReturnsExpectedArgumentsForAFolder()
     {
-        var strategy = new DotnetSimulationStrategy();
+        var settings = new SimulateCommandSettings();
+        var strategy = new DotnetSimulationStrategy(settings);
         var result = strategy.GetExecuteCommandLineInfo(".");
 
         Assert.Equal("run --project . -c Release", result.Args);
@@ -17,7 +18,8 @@ public class DotnetSimulationStrategyTests
     [Fact]
     public void ExecuteCommandReturnsExpectedArgumentsForADll()
     {
-        var strategy = new DotnetSimulationStrategy();
+        var settings = new SimulateCommandSettings();
+        var strategy = new DotnetSimulationStrategy(settings);
         var result = strategy.GetExecuteCommandLineInfo("./foo.dll");
 
         Assert.Equal("./foo.dll", result.Args);
@@ -27,7 +29,8 @@ public class DotnetSimulationStrategyTests
     [Fact]
     public void BuildCommandReturnsExpectedArguments()
     {
-        var strategy = new DotnetSimulationStrategy();
+        var settings = new SimulateCommandSettings();
+        var strategy = new DotnetSimulationStrategy(settings);
         var result = strategy.GetBuildCommandLineInfo(".");
 
         Assert.Equal("build . -c Release /p:QirGeneration=false /p:CSharpGeneration=true", result.Args);
@@ -38,7 +41,8 @@ public class DotnetSimulationStrategyTests
     [Fact]
     public void BuildCommandSkipsBuildForDllPaths()
     {
-        var strategy = new DotnetSimulationStrategy();
+        var settings = new SimulateCommandSettings();
+        var strategy = new DotnetSimulationStrategy(settings);
         var result = strategy.GetBuildCommandLineInfo("foo.dll");
 
         Assert.Equal(CommandLineInfo.None, result);

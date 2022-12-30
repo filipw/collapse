@@ -36,8 +36,13 @@ public class QirSimulationStrategy : ISimulationStrategy
         };
     }
 
-    private static bool NeedsBuilding(string path)
+    private bool NeedsBuilding(string path)
     {
+        if (settings.SkipBuild)
+        {
+            return false;
+        }
+
         if (Path.HasExtension(path) && Path.GetExtension(path) == ".ll") return false;
         return true;
     }

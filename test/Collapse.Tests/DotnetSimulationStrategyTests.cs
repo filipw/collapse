@@ -47,4 +47,14 @@ public class DotnetSimulationStrategyTests
 
         Assert.Equal(CommandLineInfo.None, result);
     }
+
+    [Fact]
+    public void BuildCommandSkipsBuildWhenRequested()
+    {
+        var settings = new SimulateCommandSettings { SkipBuild = true };
+        var strategy = new DotnetSimulationStrategy(settings);
+        var result = strategy.GetBuildCommandLineInfo(".");
+
+        Assert.Equal(CommandLineInfo.None, result);
+    }
 }

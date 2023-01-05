@@ -14,6 +14,15 @@ public class QirSimulationStrategyTests
         Assert.Equal(CommandLineInfo.None, result);
     }
 
+    [Fact]
+    public void ExecuteCommandThrowsOnUnknownPath()
+    {
+        var settings = new SimulateCommandSettings();
+        var strategy = new QirSimulationStrategy(settings);
+
+        Assert.Throws<Exception>(() => strategy.GetExecuteCommandLineInfo("."));
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("/foo/qir-runner")]

@@ -15,6 +15,16 @@ public class QirSimulationStrategyTests
     }
 
     [Fact]
+    public void BuildCommandSkipsBuildForAnLllFile()
+    {
+        var settings = new SimulateCommandSettings();
+        var strategy = new QirSimulationStrategy(settings);
+        var result = strategy.GetBuildCommandLineInfo("foo.ll");
+
+        Assert.Equal(CommandLineInfo.None, result);
+    }
+
+    [Fact]
     public void ExecuteCommandThrowsOnUnknownPath()
     {
         var settings = new SimulateCommandSettings();

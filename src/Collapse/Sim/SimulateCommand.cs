@@ -61,18 +61,15 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
 
                     var result = OutputParser.SanitizeOutput(standardOutput);
 
-                    lock (_lock)
+                    if (result != null)
                     {
-                        if (result != null)
+                        if (results.ContainsKey(result))
                         {
-                            if (results.ContainsKey(result))
-                            {
-                                results[result] += 1;
-                            }
-                            else
-                            {
-                                results[result] = 1;
-                            }
+                            results[result] += 1;
+                        }
+                        else
+                        {
+                            results[result] = 1;
                         }
                     }
                     shotTask.Increment(stepSize);

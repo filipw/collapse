@@ -10,8 +10,6 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, SimulateCommandSettings settings)
     {
-        AnsiConsole.WriteLine();
-
         // 1. choose strategy
         ISimulationStrategy simulation = settings.Qir ? new QirSimulationStrategy(settings) : new DotnetSimulationStrategy(settings);
 
@@ -41,7 +39,7 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
 
         // 3. simulate and parse
         var stepSize = Math.Round(100.0 / settings.Shots, 2);
-        var results = new Dictionary<string, int>();
+        var results = new SortedDictionary<string, int>();
 
         var simulateCommandLineInfo = simulation.GetExecuteCommandLineInfo(settings.Path);
 
@@ -57,32 +55,27 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
             {
                 var shotTask = ctx.AddTask("[yellow]Running shots[/]");
 
-                var chunks = Enumerable.Range(0, settings.Shots).Chunk(5);
-                foreach (var chunk in chunks)
+                for (int i = 0; i < settings.Shots; i++)
                 {
-                    await Task.WhenAll(chunk.Select(i => Task.Run(async () =>
+                    var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(simulateCommandLineInfo.Name, args: simulateCommandLineInfo.Args);
+
+                    var result = OutputParser.SanitizeOutput(standardOutput);
+
+                    lock (_lock)
                     {
-                        var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(simulateCommandLineInfo.Name, args: simulateCommandLineInfo.Args);
-
-                        var result = OutputParser.SanitizeOutput(standardOutput);
-
-                        lock (_lock)
+                        if (result != null)
                         {
-                            if (result != null)
+                            if (results.ContainsKey(result))
                             {
-                                if (results.ContainsKey(result))
-                                {
-                                    results[result] += 1;
-                                }
-                                else
-                                {
-                                    results[result] = 1;
-                                }
+                                results[result] += 1;
+                            }
+                            else
+                            {
+                                results[result] = 1;
                             }
                         }
-                    })));
-
-                    shotTask.Increment(stepSize * chunk.Length);
+                    }
+                    shotTask.Increment(stepSize);
                 }
 
                 shotTask.Value = 100;

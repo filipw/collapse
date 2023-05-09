@@ -59,7 +59,7 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
                 {
                     var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(simulateCommandLineInfo.Name, args: simulateCommandLineInfo.Args);
 
-                    var result = OutputParser.SanitizeOutput(standardOutput);
+                    var result = OutputParser.SanitizeOutput(standardOutput, settings.Qir);
 
                     if (result != null)
                     {

@@ -40,10 +40,9 @@ public class QirSimulationStrategyTests
     {
         var settings = new SimulateCommandSettings { QirRunner = qirRunnerPath};
         var strategy = new QirSimulationStrategy(settings);
-        //var result = strategy.GetExecuteCommandLineInfo("../../../../../test-assets/H/");
         var result = strategy.GetExecuteCommandLineInfo("foo.ll");
 
-        Assert.Equal("foo.ll", result.Args);
+        Assert.Equal("--file foo.ll", result.Args);
         Assert.Equal(string.IsNullOrWhiteSpace(qirRunnerPath) ? "qir-runner" : "/foo/qir-runner", result.Name);
     }
 }

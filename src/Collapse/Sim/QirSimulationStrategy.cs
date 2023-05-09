@@ -32,7 +32,7 @@ public class QirSimulationStrategy : ISimulationStrategy
         return new CommandLineInfo
         {
             Name = !string.IsNullOrWhiteSpace(settings.QirRunner) ? settings.QirRunner : "qir-runner",
-            Args = discoveredPath
+            Args = $"--file {discoveredPath}"
         };
     }
 

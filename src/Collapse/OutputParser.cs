@@ -43,10 +43,11 @@ public static class OutputParser
         }
     }
 
-    public static string SanitizeOutput(string standardOutput)
+    public static string SanitizeOutput(string standardOutput, bool isQirRunner = false)
     {
         // only take the last line, because previous lines might contain any stdio output of the program itself
-        var rawResult = standardOutput.Trim().Split(Environment.NewLine).LastOrDefault();
+        var rawResultLines = standardOutput.Trim().Split(Environment.NewLine);
+        var rawResult = isQirRunner ? rawResultLines[^2] : rawResultLines[^1];
         if (rawResult == "Zero") return "|0⟩";
         if (rawResult == "One") return "|1⟩";
         return rawResult.

@@ -26,7 +26,7 @@ public static class OutputParser
                 {
                     var label = deserialized.Histogram[i].GetString();
                     var data = deserialized.Histogram[i + 1].GetDouble();
-                    results[SanitizeOutput(label)] = data;
+                    results[SanitizeOutput(label)[0]] = data;
                 }
                 else
                 {
@@ -43,21 +43,35 @@ public static class OutputParser
         }
     }
 
-    public static string SanitizeOutput(string standardOutput, bool isQirRunner = false)
+    public static string[] SanitizeOutput(string standardOutput, bool isQirRunner = false)
     {
-        // only take the last line, because previous lines might contain any stdio output of the program itself
-        var rawResultLines = standardOutput.Trim().Split(Environment.NewLine);
-        var rawResult = isQirRunner ? rawResultLines[^2] : rawResultLines[^1];
-        if (rawResult == "Zero") return "|0⟩";
-        if (rawResult == "One") return "|1⟩";
-        return rawResult.
-            Replace("(", "|").
-            Replace("[", "|").
-            Replace(")", "⟩").
-            Replace("]", "⟩").
-            Replace(" ", string.Empty).
-            Replace(",", string.Empty).
-            Replace("Zero", "0").
-            Replace("One", "1");
+        string[] rawResultLines;
+        if (!isQirRunner)
+        {
+            // only take the last line, because previous lines might contain any stdio output of the program itself
+            rawResultLines = standardOutput.Trim().Split(Environment.NewLine)[^1..];
+        } else {
+            rawResultLines = standardOutput.Trim().Split(Environment.NewLine).Where(line => 
+                !line.StartsWith("METADATA") && 
+                !line.StartsWith("START") && 
+                !line.StartsWith("END")).ToArray();
+        }
+
+        for (var i = 0; i<rawResultLines.Length; i++)
+        {
+            if (rawResultLines[i] == "Zero") rawResultLines[i] = "|0⟩";
+            if (rawResultLines[i] == "One") rawResultLines[i] = "|1⟩";
+            rawResultLines[i] = rawResultLines[i].
+                Replace("(", "|").
+                Replace("[", "|").
+                Replace(")", "⟩").
+                Replace("]", "⟩").
+                Replace(" ", string.Empty).
+                Replace(",", string.Empty).
+                Replace("Zero", "0").
+                Replace("One", "1");
+        }
+
+        return rawResultLines;
     }
 }

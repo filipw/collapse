@@ -6,8 +6,6 @@ namespace Collapse;
 
 internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
 {
-    private static readonly object _lock = new();
-
     public override async Task<int> ExecuteAsync(CommandContext context, SimulateCommandSettings settings)
     {
         // 1. choose strategy
@@ -26,8 +24,8 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
                     });
 
                 AnsiConsole.MarkupLine(":check_mark: [green]Built successfully![/]");
-            } 
-            else 
+            }
+            else
             {
                 AnsiConsole.MarkupLine(":check_mark: [green]Already pre-built![/]");
             }
@@ -38,45 +36,36 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
         }
 
         // 3. simulate and parse
-        var stepSize = Math.Round(100.0 / settings.Shots, 2);
         var results = new SortedDictionary<string, int>();
-
         var simulateCommandLineInfo = simulation.GetExecuteCommandLineInfo(settings.Path);
 
-        await AnsiConsole.Progress()
-            .Columns(new ProgressColumn[]
-            {
-                new TaskDescriptionColumn(),
-                new ProgressBarColumn(),
-                new PercentageColumn(),
-                new RemainingTimeColumn()
-            })
-            .StartAsync(async ctx =>
-            {
-                var shotTask = ctx.AddTask("[yellow]Running shots[/]");
-
-                for (int i = 0; i < settings.Shots; i++)
+        if (settings.NoOrchestration) 
+        {
+            await RunShots(simulateCommandLineInfo.Name, simulateCommandLineInfo.Args, settings.Qir, results);
+        } 
+        else 
+        {
+            var stepSize = Math.Round(100.0 / settings.Shots, 2);
+            await AnsiConsole.Progress()
+                .Columns(new ProgressColumn[]
                 {
-                    var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(simulateCommandLineInfo.Name, args: simulateCommandLineInfo.Args);
-
-                    var result = OutputParser.SanitizeOutput(standardOutput, settings.Qir);
-
-                    if (result != null)
+                    new TaskDescriptionColumn(),
+                    new ProgressBarColumn(),
+                    new PercentageColumn(),
+                    new RemainingTimeColumn()
+                })
+                .StartAsync(async ctx =>
+                {
+                    var shotTask = ctx.AddTask("[yellow]Running shots[/]");
+                    for (int i = 0; i < settings.Shots; i++)
                     {
-                        if (results.ContainsKey(result))
-                        {
-                            results[result] += 1;
-                        }
-                        else
-                        {
-                            results[result] = 1;
-                        }
+                        await RunShots(simulateCommandLineInfo.Name, simulateCommandLineInfo.Args, settings.Qir, results);
+                        shotTask.Increment(stepSize);
                     }
-                    shotTask.Increment(stepSize);
-                }
 
-                shotTask.Value = 100;
-            });
+                    shotTask.Value = 100;
+                });
+        }
 
         AnsiConsole.MarkupLine(":check_mark: [green]Finished running shots![/]");
         AnsiConsole.WriteLine();
@@ -94,5 +83,27 @@ internal sealed class SimulateCommand : AsyncCommand<SimulateCommandSettings>
         AnsiConsole.Write(chart);
 
         return 0;
+    }
+
+    private static async Task RunShots(string command, string args, bool qir, SortedDictionary<string, int> results)
+    {
+        var (standardOutput, standardError) = await SimpleExec.Command.ReadAsync(command, args: args);
+
+        var sanitizedResults = OutputParser.SanitizeOutput(standardOutput, qir);
+
+        foreach (var result in sanitizedResults)
+        {
+            if (result != null)
+            {
+                if (results.ContainsKey(result))
+                {
+                    results[result] += 1;
+                }
+                else
+                {
+                    results[result] = 1;
+                }
+            }
+        }
     }
 }

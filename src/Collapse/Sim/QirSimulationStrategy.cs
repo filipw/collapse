@@ -29,10 +29,11 @@ public class QirSimulationStrategy : ISimulationStrategy
             throw new Exception("No valid QIR executable found!");
         }
 
+        var shots = settings.NoOrchestration ? $" --shots {settings.Shots}" : "";
         return new CommandLineInfo
         {
             Name = !string.IsNullOrWhiteSpace(settings.QirRunner) ? settings.QirRunner : "qir-runner",
-            Args = $"--file {discoveredPath}"
+            Args = $"--file {discoveredPath}{shots}"
         };
     }
 

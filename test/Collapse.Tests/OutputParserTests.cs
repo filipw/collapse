@@ -14,7 +14,7 @@ public class OutputParserTests
     public void BasicQSharpOutput(string input, string expectedOutput)
     {
         var result = OutputParser.SanitizeOutput(input);
-        Assert.Equal(expectedOutput, result);
+        Assert.Equal(expectedOutput, result[0]);
     }
 
     [Fact]

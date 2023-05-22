@@ -27,4 +27,9 @@ public sealed class SimulateCommandSettings : CommandSettings
         [CommandOption("--skip-build")]
         [DefaultValue(false)]
         public bool SkipBuild { get; init; }
+
+        [Description("Determines if collapse should run the runner multiple times, or yield to the runner to handle the shots internally. Defaults to true.")]
+        [CommandOption("--no-orchestration")]
+        [DefaultValue(true)]
+        public bool NoOrchestration { get; init;}
     }

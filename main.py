@@ -122,15 +122,15 @@ def create_histogram(results: List[Any], max_width: int = 60, colorful: bool = T
     
     return "\n".join(lines)
 
-def run_from_file(file_path: str, shots: int) -> List[Any]:
+def run_from_file(file_path: str, shots: int, entrypoint: str) -> List[Any]:
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"Q# file not found: {file_path}")
     
-    runner = QSharpRunner(file_path=file_path)
+    runner = QSharpRunner(file_path=file_path, entry_point=entrypoint)
     return runner.run(shots=shots)
 
-def run_from_source(source_code: str, shots: int) -> List[Any]:
-    runner = QSharpRunner(source_code=source_code)
+def run_from_source(source_code: str, shots: int, entrypoint: str) -> List[Any]:
+    runner = QSharpRunner(source_code=source_code, entrypoint=entrypoint)
     return runner.run(shots=shots)
 
 def main():
@@ -154,10 +154,16 @@ def main():
     )
     
     parser.add_argument(
+        "-e", "--entrypoint",
+        default="Main()",
+        help="Entry point expression to run (default: Main())"
+    )
+
+    parser.add_argument(
         "-n", "--shots",
         type=int,
-        default=1000,
-        help="Number of shots to run (default: 1000)"
+        default=1024,
+        help="Number of shots to run (default: 1024)"
     )
     
     parser.add_argument(
@@ -209,11 +215,11 @@ def main():
         if args.file:
             if args.verbose:
                 print(f"Loading Q# code from file: {args.file}")
-            results = run_from_file(args.file, args.shots)
+            results = run_from_file(args.file, args.shots, args.entrypoint)
         elif args.source:
             if args.verbose:
                 print("Running Q# code from source string")
-            results = run_from_source(args.source, args.shots)
+            results = run_from_source(args.source, args.shots, args.entrypoint)
         elif args.stdin:
             if args.verbose:
                 print("Reading Q# code from standard input")

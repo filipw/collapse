@@ -1,5 +1,5 @@
-from qsharp import eval, run
 from typing import Any, List
+from qsharp import eval, run
 
 class QSharpRunner:
     def __init__(self, file_path=None, source_code=None, entry_point="Main()"):
@@ -23,9 +23,7 @@ class QSharpRunner:
         # we need to "compile" the Q# code first
         eval(self.source_code)
 
-        # next we call the entry point. this assumes "Main()" is the entry point
-        # we probably should change this because it is a bold assumption
-        # but for now, let's just go with it
+        # next we call the entry point
         results = run(
             entry_expr=self.entry_point,
             shots=shots,

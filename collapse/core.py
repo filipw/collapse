@@ -1,31 +1,26 @@
 from typing import List, Any
 from collections import Counter
+from qsharp._native import Result
 
 def format_result(result: Any) -> str:
     if isinstance(result, bool):
         return "1" if result else "0"
-    elif hasattr(result, "__str__"):
-        # handle Q# Result types (One/Zero)
-        result_str = str(result)
-        if result_str == "One":
-            return "1"
-        elif result_str == "Zero":
-            return "0"
-        elif isinstance(result, tuple):
-            # handle tuples of Results or booleans
-            return "".join(format_result(bit) for bit in result)
-        elif isinstance(result, list):
-            # handle lists of Results or booleans
-            return "".join(format_result(bit) for bit in result)
-        else:
-            # give up and return the string representation
-            return result_str
+    elif isinstance(result, Result):
+        return "1" if result == Result.One else "0"
     elif isinstance(result, tuple):
         # handle tuples of values
         return "".join(format_result(bit) for bit in result)
     elif isinstance(result, list):
         # handle arrays of values
         return "".join(format_result(bit) for bit in result)
+    elif hasattr(result, "__str__"):
+        result_str = str(result)
+        if result_str == "One":
+            return "1"
+        elif result_str == "Zero":
+            return "0"
+        else:
+            return result_str
     elif result is None:
         return "None"
     else:

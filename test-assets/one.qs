@@ -1,0 +1,3 @@
+operation Main() : Result {
+    One
+}

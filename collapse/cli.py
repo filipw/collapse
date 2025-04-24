@@ -69,11 +69,6 @@ def main():
     )
     
     parser.add_argument(
-        "--save",
-        help="Save results to the specified file"
-    )
-    
-    parser.add_argument(
         "--verbose",
         action="store_true",
         help="Show detailed information about the Q# execution"
@@ -130,16 +125,7 @@ def main():
                 "result_count": len(results)
             }, indent=2)
         
-        if args.save:
-            if args.output == "text" and use_colors:
-                ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-                output = ansi_escape.sub('', output)
-                
-            with open(args.save, "w") as f:
-                f.write(output)
-            print(f"Results saved to {args.save}")
-        else:
-            print(output)
+        print(output)
             
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
